@@ -1,0 +1,52 @@
+// Careers Listing Styles
+.careers {
+	.tags {
+		span {
+			margin-right: 10px;
+			font-weight: bold;
+			&:empty {
+				display: none;
+			}
+		}
+	}
+	.filters-section {
+		.filter-category {
+			display: inline-block;
+			padding: 0 15px;
+			width: 50%;
+			vertical-align: top;
+			.job-filter {
+				display: inline-block;
+				margin-right: 5px;
+				&.active {
+					color: green;
+				}
+			}
+		}
+		.clear-filters {
+			text-align: center;
+			margin: 20px 0;
+			a {
+				@include secondaryButton;
+			}
+		}
+	}
+	.sorting-section {
+		@include clearFix;
+		form {
+			float: right;
+			label {
+				display: block;
+			}
+		}
+	}
+	.jobs-list {
+		&.filtered {
+			.job {
+				&:not(.match) {
+					display: none;
+				}
+			}
+		}
+	}
+}
