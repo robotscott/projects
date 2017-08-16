@@ -9,11 +9,15 @@
 
 All function realated to the Lever API are contained within the jobListing object.
 
-The page building functions append all content to an element with the id "careers". The page on which these functions are being called must have an element with that id.
+The page building functions append all content to an element with the id "careers-api". The page on which these functions are being called must have an element with that id.
 
-The jobListing object contains six variables for controlling career page output.
+The jobListing object contains eight variables for controlling career page output.
 
 - companyName: Should be set the to FI's Lever username
+- careerContainer: Defines the container for content to be appended to
+- listPageInfo: Object that defines what information will be included about each job posting on the list page.
+	+ Variables include date, location, team, department, commitment, shortDescription, fullDescription, learnMore, and applyNow.
+	+ Each is included by setting the variable to true.
 - initialOrder: Defines the listing page's initial sorting order. Options are AtoZ, ZtoA, newest, or oldest
 - userSortOptions: Set to true to add sort option dropdown for user
 - filterOptions: Add filtering categories as a string with multiple categories seperated by commas. Options include location, commitment, team, and/or department. Leaving as undifined will omit filtering options.
@@ -24,8 +28,10 @@ Options will be set within a sites document ready function, after wich the funct
 
 Example:
 $f(document).ready(function() {
-	if ($f('#careers').length) {
+	if ($f('#careers-api').length) {
 		jobListing.companyName = 'kasasa';
+        jobListing.listPageInfo.date = true;
+        jobListing.listPageInfo.shortDescription = true;
         jobListing.userSortOptions = true;
         jobListing.filterOptions = 'team, location, commitment, department';
         jobListing.callListings();

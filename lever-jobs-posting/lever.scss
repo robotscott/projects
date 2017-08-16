@@ -1,14 +1,5 @@
 // Careers Listing Styles
-.careers {
-	.tags {
-		span {
-			margin-right: 10px;
-			font-weight: bold;
-			&:empty {
-				display: none;
-			}
-		}
-	}
+#careers-api {
 	.filters-section {
 		.filter-category {
 			display: inline-block;
@@ -19,20 +10,18 @@
 				display: inline-block;
 				margin-right: 5px;
 				&.active {
-					color: green;
+					font-weight: bold;
 				}
-			}
-		}
-		.clear-filters {
-			text-align: center;
-			margin: 20px 0;
-			a {
-				@include secondaryButton;
 			}
 		}
 	}
 	.sorting-section {
-		@include clearFix;
+		&:after {
+	        content: "";
+	        display: block;
+	        height: 0;
+	        clear: both;
+	    }
 		form {
 			float: right;
 			label {

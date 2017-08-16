@@ -1,8 +1,22 @@
+var $f = $j = jQuery.noConflict();
+
 var jobListing = {
 
   // Variables
-  companyName: 'kasasa', // Companies Lever user name
-  initialOrder: 'AtoZ', // AtoZ, ZtoA, newest, or oldest
+  companyName: '', // Companies Lever user name
+  careerContainer: '#careers-api', // container to append postings onto
+  listPageInfo: { // variables to set what information to include on job list
+    date: true,
+    location: true,
+    team: false,
+    department: false,
+    commitment: false, // eg part-time, full-time, etc.
+    shortDescription: true,
+    fullDescription: false,
+    learnMore: true,
+    applyNow: false
+  },
+  initialOrder: 'AtoZ', // AtoZ, ZtoA, Newest, or Oldest
   userSortOptions: false, // set to true to add sort option
   filterOptions: undefined, // location, commitment, team, and/or department (seperate with commas; undifined/false will show no filter options)
   onDetailsPageLoad: undefined, // optional callback for after details page has loaded
@@ -11,28 +25,29 @@ var jobListing = {
   // Call job listings for career pages
   callListings: function() {
     var pageUrl = window.location.href;
+    var lever_uri = 'https://api.lever.co/v0/postings/';
     var url;
     var success;
 
     // Variables for job details page
     if (pageUrl.indexOf('?post-id=') >= 0) {
       var postID = pageUrl.split('?post-id=')[1];
-      url = 'https://api.lever.co/v0/postings/'+this.companyName+'/'+postID;
+      url = lever_uri+this.companyName+'/'+postID;
       success = jobListing.detailPage;
     }
     // Variables for jobs list page
     else {
-      url = 'https://api.lever.co/v0/postings/'+this.companyName+'?mode=json';
+      url = lever_uri+this.companyName+'?mode=json';
       success = jobListing.listPage;
     }
 
     $f.ajax({
-      datacommitment: "json",
+      dataType: "json",
       url: url,
       success: function(data){
         success(data);
       },
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
+      error: function(errorThrown) {
         console.log(errorThrown);
       }
     });
@@ -40,30 +55,17 @@ var jobListing = {
   },
 
   // Builds details page
-  detailPage: function(_data) {
-    var posting = _data;
-    var title = posting.text;
-    var description = posting.description;
-    var location = jobListing.nullCheck(posting.categories.location);
-    var locationCleanString = jobListing.cleanString(location);
-    var commitment = jobListing.nullCheck(posting.categories.commitment);
-    var commitmentCleanString = jobListing.cleanString(commitment);
-    var team = jobListing.nullCheck(posting.categories.team);
-    var teamCleanString = jobListing.cleanString(team);
-    var department = jobListing.nullCheck(posting.categories.department);
-    var link = posting.applyUrl;
-    var timestamp = posting.createdAt;
-    var dateString = new Date(timestamp);
-    var formattedDate = jobListing.formatDate(dateString);
+  detailPage: function(data) {
+    var posting = jobListing.leverPostingInfo(data);
 
-    $f('#careers').append(
-      '<h3 class="job-title">'+title+'</h3>' +
+    $f(jobListing.careerContainer).append(
+      '<h3 class="job-title">'+posting.title+'</h3>' +
       '<div class="tags">' +
-      jobListing.htmlTags(location, team, department, commitment) +
+      jobListing.htmlTags(posting.location, posting.team, posting.department, posting.commitment) +
       '</div>' +
-      '<p class="posted">Posted: '+formattedDate+'</p>'+
-      '<div class="description">'+description+'</div>' +
-      '<a class="primary-button" href="'+link+'" target="_blank">Apply Now</a>'
+      '<p class="posted">Posted: '+posting.formattedDate+'</p>'+
+      '<div class="description">'+posting.description+'</div>' +
+      '<a class="primary-button" href="'+posting.applyLink+'" target="_blank">Apply Now</a>'
     );
 
     if (this.onDetailsPageLoad) {
@@ -73,12 +75,12 @@ var jobListing = {
   },
 
   // Builds list page
-  listPage: function(_data) {
+  listPage: function(data) {
 
     // Checks for filter options
     if (jobListing.filterOptions) {
       // Build filters
-      jobListing.filters(_data, jobListing.filterOptions);
+      jobListing.filters(data, jobListing.filterOptions);
       // Add filter event handler
       $f('.job-filter').click(function(e){
         e.preventDefault();
@@ -94,7 +96,7 @@ var jobListing = {
     // Set initial sort order of jobs list
     jobListing.sort.sortJobs(
       jobListing.initialOrder,
-      _data,
+      data,
       'text',
       'createdAt'
     );
@@ -102,15 +104,15 @@ var jobListing = {
     // Check user sort options
     if (jobListing.userSortOptions) {
       // Build sort options selector
-      $f('#careers').append(
+      $f(jobListing.careerContainer).append(
         '<div class="sorting-section">' +
         '<form>' +
         '<label for="sortby">Sort By:</label>' +
         '<select name="sortby">'+
         '<option value="AtoZ">A to Z</option>' +
         '<option value="ZtoA">Z to A</option>' +
-        '<option value="newest">newest</option>' +
-        '<option value="oldest">oldest</option>' +
+        '<option value="Newest">Newest</option>' +
+        '<option value="Oldest">Oldest</option>' +
         '</select>' +
         '</form>' +
         '</div>'
@@ -128,37 +130,14 @@ var jobListing = {
     }
 
     // Build list
-    $f('#careers').append('<div class="jobs-list content-list"></div>');
-    for (i = 0; i < _data.length; i++) {
-      var posting = _data[i];
-      var title = posting.text;
-      var description = posting.descriptionPlain;
-      //Making each job description shorter than 250 characters
-      var shortDescription = $f.trim(description).substring(0, 250)
-      .replace('\n', ' ') + "...";
-      var location = jobListing.nullCheck(posting.categories.location);
-      var locationCleanString = jobListing.cleanString(location);
-      var commitment = jobListing.nullCheck(posting.categories.commitment);
-      var commitmentCleanString = jobListing.cleanString(commitment);
-      var team = jobListing.nullCheck(posting.categories.team);
-      var teamCleanString = jobListing.cleanString(team);
-      var department = jobListing.nullCheck(posting.categories.department);
-      var departmentCleanString = jobListing.cleanString(department);
-      var timestamp = posting.createdAt;
-      var dateString = new Date(timestamp);
-      var formattedDate = jobListing.formatDate(dateString);
-      var link = 'careers-details.html?post-id='+posting.id;
+    $f(jobListing.careerContainer).append('<div class="jobs-list content-list"></div>');
+    for (i = 0; i < data.length; i++) {
+      var posting = jobListing.leverPostingInfo(data[i]);
 
-      $f('#careers .jobs-list').append(
-        // '<div class="job content-item '+teamCleanString+' '+locationCleanString+' '+commitmentCleanString+'" '+dataTags()+'>' +
+      $f(jobListing.careerContainer).find('.jobs-list').append(
         '<div class="job content-item" '+dataTags()+'>' +
-        '<h3 class="job-title">'+title+'</h3>' +
-        '<div class="tags">' +
-        jobListing.htmlTags(location, team, department, commitment) +
-        '</div>' +
-        '<p class="posted">Posted: '+formattedDate+'</p>'+
-        '<p class="description">'+shortDescription+'</p>' +
-        '<a class="primary-button" href="'+link+'">Learn more</a>' +
+        '<h3 class="job-title">'+posting.title+'</h3>' +
+        jobListing.listInfo(posting) +
         '</div>'
       );
     }
@@ -169,28 +148,101 @@ var jobListing = {
 
     // Defines data tags for each job
     function dataTags() {
-      var tagString = 'data-title="'+title+'" data-timestamp="'+timestamp+'" ';
-      if (location !== 'Uncategorized'){tagString += 'data-location="'+locationCleanString+'" ';}
-      if (commitment !== 'Uncategorized'){tagString += 'data-commitment="'+commitmentCleanString+'" ';}
-      if (team !== 'Uncategorized'){tagString += 'data-team="'+teamCleanString+'" ';}
-      if (department !== 'Uncategorized'){tagString += 'data-department="'+departmentCleanString+'" ';}
-      return tagString;
+      var dataTagString = 'data-title="'+posting.title+'" data-timestamp="'+posting.timestamp+'" ';
+      if (posting.location !== 'Uncategorized'){dataTagString += 'data-location="'+posting.locationCleanString+'" ';}
+      if (posting.commitment !== 'Uncategorized'){dataTagString += 'data-commitment="'+posting.commitmentCleanString+'" ';}
+      if (posting.team !== 'Uncategorized'){dataTagString += 'data-team="'+posting.teamCleanString+'" ';}
+      if (posting.department !== 'Uncategorized'){dataTagString += 'data-department="'+posting.departmentCleanString+'" ';}
+      return dataTagString;
     }
+  },
+
+  // Create object containing info about a Lever posting
+  leverPostingInfo: function(data) {
+    var postingObject = {
+      title: data.text,
+      description: data.description,
+      //Making each job description shorter than 250 characters
+      shortDescription: jobListing.closeOpenTags($f.trim(data.description).substring(0, 250).replace('\n', ' ') + "..."),
+      location: jobListing.nullCheck(data.categories.location),
+      locationCleanString: jobListing.cleanString(data.categories.location),
+      commitment: jobListing.nullCheck(data.categories.commitment),
+      commitmentCleanString: jobListing.cleanString(data.categories.commitment),
+      team: jobListing.nullCheck(data.categories.team),
+      teamCleanString: jobListing.cleanString(data.categories.team),
+      department: jobListing.nullCheck(data.categories.department),
+      departmentCleanString: jobListing.cleanString(data.categories.department),
+      applyLink: data.applyUrl,
+      timestamp: data.createdAt,
+      formattedDate: jobListing.formatDate(new Date(data.createdAt)),
+      detailsLink: 'careers-details.html?post-id='+data.id
+    };
+    return postingObject;
   },
 
   // Defines HTML data tags for display
   htmlTags: function(location, team, department, commitment) {
-    var tagString = '';
-    if (location !== 'Uncategorized'){tagString += '<div class="location"><span class="label">Location:</span> <span class="value">'+location+'</span></div>';}
-    if (team !== 'Uncategorized'){tagString += '<div class="team"><span class="label">Team:</span> <span class="value">'+team+'</span></div>';}
-    if (department !== 'Uncategorized'){tagString += '<div class="department"><span class="label">Department:</span> <span class="value">'+department+'</span></div>';}
-    if (commitment !== 'Uncategorized'){tagString += '<div class="commitment"><span class="label">Commitment:</span> <span class="value">'+commitment+'</span></div>';}
-    return tagString;
+    var htmlTagString = '';
+    if (location !== 'Uncategorized'){htmlTagString += '<div class="location"><span class="label">Location:</span> <span class="value">'+location+'</span></div>';}
+    if (team !== 'Uncategorized'){htmlTagString += '<div class="team"><span class="label">Team:</span> <span class="value">'+team+'</span></div>';}
+    if (department !== 'Uncategorized'){htmlTagString += '<div class="department"><span class="label">Department:</span> <span class="value">'+department+'</span></div>';}
+    if (commitment !== 'Uncategorized'){htmlTagString += '<div class="commitment"><span class="label">Commitment:</span> <span class="value">'+commitment+'</span></div>';}
+    return htmlTagString;
+  },
+
+  // Defines HTML data tags for display
+  listInfo: function(posting) {
+    var htmlInfoString = '';
+    if(this.listPageInfo.date === true){
+      htmlInfoString += '<div class="date info-tag"><span class="label">Posted: </span><span class="value">'+posting.formattedDate+'</span></div>';
+    }
+    if(this.listPageInfo.location === true){
+      if(posting.location !== 'Uncategorized') {
+        htmlInfoString += '<div class="location info-tag"><span class="label">Location: </span><span class="value">'+posting.location+'</span></div>';
+      } else {
+        htmlInfoString += '<div class="location info-tag"></div>';
+      }
+    }
+    if(this.listPageInfo.team === true){
+      if(posting.team !== 'Uncategorized') {
+        htmlInfoString += '<div class="team info-tag"><span class="label">Team: </span><span class="value">'+posting.team+'</span></div>';
+      } else {
+        htmlInfoString += '<div class="team info-tag"></div>';
+      }
+    }
+    if(this.listPageInfo.department === true){
+      if(posting.department !== 'Uncategorized') {
+        htmlInfoString += '<div class="department info-tag"><span class="label">Department: </span><span class="value">'+posting.department+'</span></div>';
+      } else {
+        htmlInfoString += '<div class="department info-tag"></div>';
+      }
+    }
+    if(this.listPageInfo.commitment === true){
+      if(posting.commitment !== 'Uncategorized') {
+        htmlInfoString += '<div class="commitment info-tag"><span class="label">Commitment: </span><span class="value">'+posting.commitment+'</span></div>';
+      } else {
+        htmlInfoString += '<div class="commitment info-tag"></div>';
+      }
+    }
+    if(this.listPageInfo.shortDescription === true){
+      htmlInfoString += '<div class="description short">'+posting.shortDescription+'</div>';
+      console.log(posting);
+    }
+    if(this.listPageInfo.fullDescription === true){
+      htmlInfoString += '<div class="description">'+posting.description+'</div>';
+    }
+    if(this.listPageInfo.learnMore === true){
+      htmlInfoString += '<div class="primary-button learn-more"><a href="'+posting.detailsLink+'">Learn more</a></div>';
+    }
+    if(this.listPageInfo.applyNow === true){
+      htmlInfoString += '<div class="primary-button apply-now"><a href="'+posting.applyLink+'" target="_blank">Apply Now</a></div>';
+    }
+    return htmlInfoString;
   },
 
   // Function that builds filters
   filters: function(data, categories) {
-    $f('#careers').append('<div class="filters-section"></div>');
+    $f(jobListing.careerContainer).append('<div class="filters-section"></div>');
 
     // Get array of set filter categories
     categories = categories.split(',').map(function(category){
@@ -217,7 +269,7 @@ var jobListing = {
     }
 
     // Add clear all filters button
-    $f('.filters-section').append('<div class="clear-filters"><a href="#">Clear All Filters</a></div><div class="results-message"></div>');
+    $f('.filters-section').append('<div class="clear-filters secondary-button"><a href="#">Clear All Filters</a></div><div class="results-message"></div>');
 
     // Fliters helper functions
     function getValues(posting) {
@@ -355,9 +407,9 @@ var jobListing = {
         return list.sort(jobListing.sort.AtoZ(alphebeticalProp));
       } else if (sortBy === 'ZtoA') {
         return list.sort(jobListing.sort.ZtoA(alphebeticalProp));
-      } else if (sortBy === 'newest') {
+      } else if (sortBy === 'Newest') {
         return list.sort(jobListing.sort.newest(dateProp));
-      } else if (sortBy === 'oldest') {
+      } else if (sortBy === 'Oldest') {
         return list.sort(jobListing.sort.oldest(dateProp));
       }
     },
@@ -420,6 +472,11 @@ var jobListing = {
     else {
       return "Uncategorized";
     }
+  },
+  closeOpenTags: function(html) {
+    var div = document.createElement('div');
+    div.innerHTML = html;
+    return div.innerHTML;
   },
   nullCheck: function(string) {
     if (!string) {
