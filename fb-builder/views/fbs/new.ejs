@@ -1,0 +1,76 @@
+<% include ../partials/html-head %>
+<% include ../partials/header %>
+<div class="container">	
+	<div class="row">
+		<h1 class="text-center">Create a FIRSTBranch for <%= fi.name %></h1>
+		<div class="col-sm-4 col-sm-offset-4">
+			<form action="/fis/<%= fi._id %>/fbs" method="POST">
+				<div class="form-group">
+					<label for="fb[primary_color]">Primary Color</label>
+					<input class="form-control" type="text" name="fb[primary_color]" placeholder="#000000"/>
+				</div>
+				<div class="form-group">
+					<label for="fb[secondary_color]">Secondary Color</label>
+					<input class="form-control" type="text" name="fb[secondary_color]" placeholder="#000000"/>
+				</div>
+				<div class="form-group">
+					<label for="fb[tertiary_color]">Tertiary Color</label>
+					<input class="form-control" type="text" name="fb[tertiary_color]" placeholder="#000000"/>
+				</div>
+				<div class="form-group">
+					<label for="fb[base_font]">Base Font</label>
+					<input class="form-control" type="text" name="fb[base_font]" />
+				</div>
+				<div class="form-group">
+					<label for="fb[secondary_font]">Secondary Font</label>
+					<input class="form-control" type="text" name="fb[secondary_font]" />
+				</div>
+				<div class="form-group">
+					<label for="fb[header_theme]">Header Theme</label>
+					<select class="form-control" name="fb[header_theme]">
+						<option value="theme1_id">Theme 1</option>
+						<option value="theme2_id">Theme 2</option>
+						<option value="theme3_id">Theme 3</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="fb[footer_theme]">Footer Theme</label>
+					<select class="form-control" name="fb[footer_theme]">
+						<option value="theme1_id">Theme 1</option>
+						<option value="theme2_id">Theme 2</option>
+						<option value="theme3_id">Theme 3</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="fb[downstream_theme]">Downstream Theme</label>
+					<select class="form-control" name="fb[downstream_theme]">
+						<option value="theme1_id">Theme 1</option>
+						<option value="theme2_id">Theme 2</option>
+						<option value="theme3_id">Theme 3</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="fb[cp_theme]">Column Promo Theme</label>
+					<select class="form-control" name="fb[cp_theme]">
+						<option value="theme1_id">Theme 1</option>
+						<option value="theme2_id">Theme 2</option>
+						<option value="theme3_id">Theme 3</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="fb[obl_theme]">OBL Promo Theme</label>
+					<select class="form-control" name="fb[obl_theme]">
+						<option value="theme1_id">Theme 1</option>
+						<option value="theme2_id">Theme 2</option>
+						<option value="theme3_id">Theme 3</option>
+					</select>
+				</div>
+				<a href="/fis/<%= fi._id %>/homepages/new" class="btn btn-default">Create Homepage</a>
+				<div class="form-group">
+					<button class="btn btn-lg btn-primary btn-block">Submit!</button>
+				</div>
+			</form>
+		</div>
+	</div>	
+</div>
+<% include ../partials/footer %>

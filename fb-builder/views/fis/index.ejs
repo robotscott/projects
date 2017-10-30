@@ -1,0 +1,15 @@
+<% include ../partials/html-head %>
+<% include ../partials/header %>
+<div class="container">
+    <a href="/fis/new" class="btn btn-primary btn-lg">Add New Financial Institution</a>
+    <h2>Existing FIs</h2>
+    <ul class="list-group">
+        <% fis.forEach(function(fi) { %>
+        <li class="list-group-item clearfix">
+            <h3><%= fi.name %> - <%= fi.location %></h3>
+            <a href="/fis/<%= fi._id %>" class="btn btn-primary">View</a>
+        </li>
+        <% }) %>
+    </ul>
+</div>
+<% include ../partials/footer %>

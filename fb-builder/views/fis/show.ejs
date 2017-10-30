@@ -1,0 +1,26 @@
+<% include ../partials/html-head %>
+<% include ../partials/header %>
+
+<div class="container">
+	<div class="col-sm-12">
+		<h1><%= fi.name %> - <%= fi.location %></h1>
+		<% if(fb) { %>
+		<ul class="list-unstyled">
+			<li>Primary Color: <%= fb.primary_color %></li>
+			<li>Secondary Color: <%= fb.secondary_color %></li>
+			<li>Tertiary Color: <%= fb.tertiary_color %></li>
+			<li>Base Font: <%= fb.base_font %></li>
+			<li>Secondary Font: <%= fb.secondary_font %></li>
+			<li>Header Theme: <%= fb.header_theme %></li>
+			<li>Footer Theme: <%= fb.footer_theme %></li>
+			<li>Downstream Theme: <%= fb.downstream_theme %></li>
+			<li>Column Promo Theme: <%= fb.cp_theme %></li>
+			<li>OBL Promo Theme: <%= fb.obl_theme %></li>
+		</ul>
+		<% } else { %>
+			<a href="/fis/<%= fi._id %>/fbs/new" class="btn btn-primary">Create FIRSTBranch</a> <a href="/fis/<%= fi._id %>/homepages/new" class="btn btn-primary">Create Homepage</a>
+		<% } %>
+	</div>
+</div>
+
+<% include ../partials/footer %>
